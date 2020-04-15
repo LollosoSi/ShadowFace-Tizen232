@@ -40,7 +40,7 @@ typedef struct appdata
   Evas_Object *numTicks[12];
 } appdata_s;
 
-short window_center_x, window_center_y;
+short window_center_x, window_center_y, window_width, window_height;
 
 bool playerTickSwap = 0;
 
@@ -74,7 +74,10 @@ char ticktextbuf[30];
 uint8_t shownElementsPerSide = 6; // 6 is the minimum value for visibility of both current/next digit
 
 
-short shadowCoeff;
+short shadow_coeff;
+uint8_t shrink_coeff = 3;
+uint8_t daily_border_distance; // Runtime variable
+uint8_t day_of_week = 0;
 
 int error_code;
 
@@ -295,7 +298,7 @@ arraycpy (uint8_t dest[], uint8_t source[])
 //	      if (shortestDistance < 0)
 //		shortestDistance = 0;
 //	      else
-//		shortestDistance *= shadowCoeff;
+//		shortestDistance *= shadow_coeff;
 //	      if (shortestDistance < 100)
 //		shortestDistance = 0;
 //
@@ -447,6 +450,74 @@ arraycpy (uint8_t dest[], uint8_t source[])
 //    }
 //}
 
+/* this function might look identical to create_gui. IT IS NOT */
+void reset_elements_settings(appdata_s *ad){
+
+
+    daily_border_distance = shrink_coeff*(day_of_week-1);
+
+    /* Tick & number repositioning */
+    for (int i = 0; i < 60; i++) {
+        short angle = (i / 0.167f) - 90;
+        if (angle < 0) {
+  	  angle += 360;
+  	}
+
+        /* If it's a number (includes different tick size) */
+        if (i % 5 == 0) {
+
+  	  /* Number x y positioning values */
+  	  double xcoeff = (i <= 15 || i > 45 ? (i > 45 ? (i - 45) : (i + 15)) : (45 - i)) / 30.0;
+  	  double ycoeff = (i <= 30 ? i : 60 - i) / 30.0;
+
+  	  evas_object_size_hint_weight_set (ad->numTicks[i / 5], EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+  	  evas_object_resize (ad->numTicks[i / 5], charsizeX, charsizeY);
+  	  evas_object_move (ad->numTicks[i / 5],
+  	      window_center_x
+  	      + ((window_center_x - borderDistance - tickBorderDistance - daily_border_distance) * cos (to_radians (angle)))
+  		  - ((i < 10 ? charsizeX / 2.0 : charsizeX) * (xcoeff)),
+  	      window_center_y
+  		  + ((window_center_y - borderDistance - tickBorderDistance - daily_border_distance) * sin (to_radians (angle))) - (charsizeY * (ycoeff)));
+
+  	  evas_object_anti_alias_set (ad->ticks[i / 5], enable_antialiasing);
+
+  	  evas_object_resize (ad->ticks[i], 2, 16);
+  	  evas_object_move (ad->ticks[i], (window_width / 2) - 1, tickBorderDistance + daily_border_distance);
+
+  	  view_rotate_object (ad->ticks[i], angle + 90, window_center_x,
+  			      window_center_y);
+
+  	} else {
+  	  evas_object_resize (ad->ticks[i], 2, 10);
+  	  evas_object_move (ad->ticks[i], (window_width / 2) - 1, tickBorderDistance + daily_border_distance);
+  	  view_rotate_object (ad->ticks[i], angle + 90, window_center_x,  window_center_y);
+  	}
+        evas_object_anti_alias_set (ad->ticks[i], enable_antialiasing);
+      }
+
+    /* Hand Hour */
+    evas_object_resize (ad->hand_hour, 4, hand_hour_length);
+    evas_object_move (ad->hand_hour, (window_width / 2) - 2, GeneralGap + daily_border_distance);
+    evas_object_anti_alias_set (ad->hand_hour, enable_antialiasing);
+
+    /* Hand Minute */
+    evas_object_resize (ad->hand_minute, 4, hand_minute_length);
+    evas_object_move (ad->hand_minute, (window_width / 2) - 2, GeneralGap + daily_border_distance);
+    evas_object_anti_alias_set (ad->hand_minute, enable_antialiasing);
+
+    /* Hand Minute Battery */
+    evas_object_resize (ad->hand_minute_battery, 4, hand_minute_length);
+    evas_object_move (ad->hand_minute_battery, (window_width / 2) - 2, GeneralGap + daily_border_distance);
+    evas_object_anti_alias_set (ad->hand_minute_battery, enable_antialiasing);
+
+    /* Circle Hand Seconds */
+    evas_object_move (ad->hand_second, (window_width / 2) - 9, GeneralGap + daily_border_distance);
+    evas_object_resize (ad->hand_second, 18, 18);
+    evas_object_anti_alias_set (ad->hand_second, enable_antialiasing);
+
+}
+
+
 bool needFullLoop = false;
 void active_tick(appdata_s *ad, watch_time_h watch_time){
   int hour, minute, second;
@@ -518,7 +589,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 	      else{
 		  /* any response can be implemented here.
 		   * find the curve you like online then implement it */
-		alphaValue = (shortestDistance * shadowCoeff);
+		alphaValue = (shortestDistance * shadow_coeff);
 		//if (shortestDistance < 100)
 		//  alphaValue = 0;
 	      }
@@ -601,7 +672,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
       device_battery_get_percent (&batlev);
       short subtract_min_bat_length = (short) (hand_minute_length * (1.0f - (batlev / 100.0f)));
       evas_object_resize (ad->hand_minute_battery, 4, hand_minute_length - subtract_min_bat_length);
-      evas_object_move (ad->hand_minute_battery, window_center_x - 2, GeneralGap + subtract_min_bat_length);
+      evas_object_move (ad->hand_minute_battery, window_center_x - 2, GeneralGap + daily_border_distance + subtract_min_bat_length);
 
       view_rotate_object (ad->hand_minute_battery, angle_minute, window_center_x, window_center_y);
 
@@ -613,9 +684,18 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
       	  player_start (ad->playerTick2);
         playerTickSwap = !playerTickSwap;
 
+	  uint8_t weekday;
+	  watch_time_get_day_of_week(watch_time, &weekday);
+          if(day_of_week != weekday){
+              day_of_week=weekday;
+              reset_elements_settings(ad);
+          }
+
         if(needFullLoop)
           needFullLoop=0;
   }
+
+
 }
 
 
@@ -677,7 +757,7 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
   	      if (shortestDistance < 0)
   		alphaValue = 0;
   	      else{
-  		  alphaValue = (shortestDistance*shadowCoeff);
+  		  alphaValue = (shortestDistance*shadow_coeff);
   		//  if (shortestDistance < 100)
   		//      alphaValue = 0;
   	      }
@@ -747,7 +827,7 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
         device_battery_get_percent (&batlev);
         short subtract_min_bat_length = (short) (hand_minute_length * (1.0f - (batlev / 100.0f)));
         evas_object_resize (ad->hand_minute_battery, 4, hand_minute_length - subtract_min_bat_length);
-        evas_object_move (ad->hand_minute_battery, window_center_x - 2, GeneralGap + subtract_min_bat_length);
+        evas_object_move (ad->hand_minute_battery, window_center_x - 2, GeneralGap + daily_border_distance + subtract_min_bat_length);
 
         view_rotate_object (ad->hand_minute_battery, angle_minute, window_center_x, window_center_y);
 
@@ -779,17 +859,28 @@ requestUpdate(bool ambient, watch_time_h *watch_time, appdata_s *ad){
 
 
 static void
-create_base_gui (appdata_s *ad, int width, int height)
+create_base_gui (appdata_s *ad)
 {
 
-  window_center_x = width / 2;
-  window_center_y = height / 2;
+
+  int ret;
+  watch_time_h watch_time = NULL;
+
+  // Will delete the object at the end of function
+  ret = watch_time_get_current_time (&watch_time);
+  if (ret != APP_ERROR_NONE)
+    dlog_print (DLOG_ERROR, LOG_TAG, "failed to get current time. err = %d", ret);
+
+  watch_time_get_day_of_week(watch_time, &day_of_week);
+  daily_border_distance = shrink_coeff*(day_of_week-1);
+
+  window_center_x = window_width / 2;
+  window_center_y = window_height / 2;
 
   for (int i = 0; i < 12; i++)
     showingMinutes[i] = 0;
 
-  int ret;
-  watch_time_h watch_time = NULL;
+
 
   /* Window */
   ret = watch_app_get_elm_win (&ad->win);
@@ -798,7 +889,7 @@ create_base_gui (appdata_s *ad, int width, int height)
       return;
     }
 
-  evas_object_resize (ad->win, width, height);
+  evas_object_resize (ad->win, window_width, window_height);
 
   /* Conformant */
   ad->conform = elm_conformant_add (ad->win);
@@ -830,10 +921,10 @@ create_base_gui (appdata_s *ad, int width, int height)
 	  evas_object_resize (ad->numTicks[i / 5], charsizeX, charsizeY);
 	  evas_object_move (ad->numTicks[i / 5],
 	      window_center_x
-	      + ((window_center_x - borderDistance - tickBorderDistance) * cos (to_radians (angle)))
+	      + ((window_center_x - borderDistance - tickBorderDistance - daily_border_distance) * cos (to_radians (angle)))
 		  - ((i < 10 ? charsizeX / 2.0 : charsizeX) * (xcoeff)),
 	      window_center_y
-		  + ((window_center_y - borderDistance - tickBorderDistance) * sin (to_radians (angle))) - (charsizeY * (ycoeff)));
+		  + ((window_center_y - borderDistance - tickBorderDistance - daily_border_distance) * sin (to_radians (angle))) - (charsizeY * (ycoeff)));
 	  evas_object_color_set (ad->numTicks[i / 5], 250, 250, 250, 0);
 
 	  snprintf (watch_text_buf, 50,
@@ -850,7 +941,7 @@ create_base_gui (appdata_s *ad, int width, int height)
 	  ad->ticks[i] = evas_object_rectangle_add (ad->conform);
 
 	  evas_object_resize (ad->ticks[i], 2, 16);
-	  evas_object_move (ad->ticks[i], (width / 2) - 1, tickBorderDistance);
+	  evas_object_move (ad->ticks[i], (window_width / 2) - 1, tickBorderDistance + daily_border_distance);
 	  evas_object_color_set (ad->ticks[i], 200, 200, 200, 0);
 	  evas_object_show (ad->ticks[i]);
 
@@ -861,7 +952,7 @@ create_base_gui (appdata_s *ad, int width, int height)
 	  ad->ticks[i] = evas_object_rectangle_add (ad->conform);
 
 	  evas_object_resize (ad->ticks[i], 2, 10);
-	  evas_object_move (ad->ticks[i], (width / 2) - 1, tickBorderDistance);
+	  evas_object_move (ad->ticks[i], (window_width / 2) - 1, tickBorderDistance + daily_border_distance);
 	  evas_object_color_set (ad->ticks[i], 200, 200, 200, 0);
 	  evas_object_show (ad->ticks[i]);
 
@@ -873,7 +964,7 @@ create_base_gui (appdata_s *ad, int width, int height)
   /* Hand Hour */
   ad->hand_hour = evas_object_rectangle_add (ad->conform);
   evas_object_resize (ad->hand_hour, 4, hand_hour_length);
-  evas_object_move (ad->hand_hour, (width / 2) - 2, GeneralGap);
+  evas_object_move (ad->hand_hour, (window_width / 2) - 2, GeneralGap + daily_border_distance);
   evas_object_color_set (ad->hand_hour, 200, 200, 200, 120);
   evas_object_anti_alias_set (ad->hand_hour, enable_antialiasing);
   evas_object_show (ad->hand_hour);
@@ -882,9 +973,9 @@ create_base_gui (appdata_s *ad, int width, int height)
    * not planned to be used anytime soon
    */
   /*ad->hand_hour = evas_object_line_add (ad->conform);
-  evas_object_line_xy_set(ad->hand_hour,  (width / 2)-(cos(0)*GeneralGap), (width / 2)-(sin(0)*GeneralGap), (width / 2)-(cos(0)*hand_hour_length), (width / 2)-(sin(0)*hand_hour_length));
+  evas_object_line_xy_set(ad->hand_hour,  (window_width / 2)-(cos(0)*GeneralGap), (window_width / 2)-(sin(0)*GeneralGap), (window_width / 2)-(cos(0)*hand_hour_length), (window_width / 2)-(sin(0)*hand_hour_length));
   //evas_object_resize (ad->hand_hour, 4, hand_hour_length);
-  //evas_object_move (ad->hand_hour, (width / 2) - 2, GeneralGap);
+  //evas_object_move (ad->hand_hour, (window_width / 2) - 2, GeneralGap);
   evas_object_color_set (ad->hand_hour, 200, 200, 200, 120);
   evas_object_anti_alias_set (ad->hand_hour, enable_antialiasing);
   evas_object_show (ad->hand_hour);*/
@@ -893,7 +984,7 @@ create_base_gui (appdata_s *ad, int width, int height)
   /* Hand Minute */
   ad->hand_minute = evas_object_rectangle_add (ad->conform);
   evas_object_resize (ad->hand_minute, 4, hand_minute_length);
-  evas_object_move (ad->hand_minute, (width / 2) - 2, GeneralGap);
+  evas_object_move (ad->hand_minute, (window_width / 2) - 2, GeneralGap + daily_border_distance);
   evas_object_color_set (ad->hand_minute, 200, 200, 200, 120);
   evas_object_anti_alias_set (ad->hand_minute, enable_antialiasing);
   evas_object_show (ad->hand_minute);
@@ -901,7 +992,7 @@ create_base_gui (appdata_s *ad, int width, int height)
   /* Hand Minute Battery */
   ad->hand_minute_battery = evas_object_rectangle_add (ad->conform);
   evas_object_resize (ad->hand_minute_battery, 4, hand_minute_length);
-  evas_object_move (ad->hand_minute_battery, (width / 2) - 2, GeneralGap);
+  evas_object_move (ad->hand_minute_battery, (window_width / 2) - 2, GeneralGap + daily_border_distance);
   evas_object_color_set (ad->hand_minute_battery, 250, 195, 77, 250);
   evas_object_anti_alias_set (ad->hand_minute_battery, enable_antialiasing);
   evas_object_show (ad->hand_minute_battery);
@@ -911,7 +1002,7 @@ create_base_gui (appdata_s *ad, int width, int height)
    */
   /*ad->hand_second = evas_object_rectangle_add(ad->conform);
    evas_object_resize(ad->hand_second, 2, hand_second_length);
-   evas_object_move(ad->hand_second, (width / 2) - 1, GeneralGap);
+   evas_object_move(ad->hand_second, (window_width / 2) - 1, GeneralGap);
    evas_object_color_set(ad->hand_second, 200, 100, 100, 200);
    evas_object_anti_alias_set(ad->hand_second, true);
    evas_object_show(ad->hand_second);*/
@@ -941,16 +1032,12 @@ create_base_gui (appdata_s *ad, int width, int height)
       //int err = evas_object_image_load_error_get(ad->hand_second);
       //dlog_print(DLOG_ERROR, "SHADOWFACE", "Error message:  %s", get_error_message(err));
       //evas_object_image_filled_set(ad->hand_second, img_path);
-      evas_object_move (ad->hand_second, (width / 2) - 9, GeneralGap);
+      evas_object_move (ad->hand_second, (window_width / 2) - 9, GeneralGap + daily_border_distance);
       evas_object_resize (ad->hand_second, 18, 18);
       evas_object_show (ad->hand_second);
       //free (image_filepath); WILL CAUSE CRASH
     }
   evas_object_anti_alias_set (ad->hand_second, enable_antialiasing);
-
-  ret = watch_time_get_current_time (&watch_time);
-  if (ret != APP_ERROR_NONE)
-    dlog_print (DLOG_ERROR, LOG_TAG, "failed to get current time. err = %d", ret);
 
   active_tick (ad, watch_time);
   watch_time_delete (watch_time);
@@ -962,6 +1049,9 @@ create_base_gui (appdata_s *ad, int width, int height)
 static bool
 app_create (int width, int height, void *data)
 {
+
+  window_width = width;
+  window_height = height;
   /* Hook to take necessary actions before main event loop starts
    Initialize UI resources and application's data
    If this function returns true, the main loop of application starts
@@ -1028,7 +1118,7 @@ app_create (int width, int height, void *data)
   player_set_volume (ad->playerTick2, tickVolume, tickVolume);
 
 
-  shadowCoeff = 255.0f / shownElementsPerSide;
+  shadow_coeff = 255.0f / shownElementsPerSide;
   GeneralGap = 65;
   hand_second_length = 90;
   hand_minute_length = 80;
@@ -1058,7 +1148,7 @@ app_create (int width, int height, void *data)
   /* Process AOD dimmed versions */
   dim_color_arrays();
 
-  create_base_gui (ad, width, height);
+  create_base_gui (ad);
 
   return true;
 }
