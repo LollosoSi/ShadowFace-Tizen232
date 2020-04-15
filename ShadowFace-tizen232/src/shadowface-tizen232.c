@@ -88,6 +88,9 @@ int error_code;
 //uint8_t tickNumberHourColor[3] = 	{255,255,255}; 	/* White */
 
 /* 		Colors
+ * 0-1 AOD
+ *
+ * 0-7
    0 - Tick color
    1 - Second Hand Color
    2 - Number Color for second hand
@@ -95,9 +98,13 @@ int error_code;
    4 - Number Color for minute hand
    5 - Hour Hand Color
    6 - Number Color for hour hand
+
+   0-2 RGB
  */
-uint8_t colors[7][3];
+#define total_available_colors 7 // Update if more colors are added
+uint8_t colors[2][7][3];
 uint8_t resultColor[3];
+uint8_t aod_dim_intensity = 0; // Disabled ATM: Requires testing
 //uint8_t resultNumberColor[3];
 
 /* rotates an EVAS object */
@@ -171,11 +178,31 @@ gradiate (uint8_t result_rgb[], uint8_t first_color[], uint8_t second_color[],
 
 /* Refer to colors[] declaration for what colorpos means */
 void
-assign_color_array (uint8_t colorpos, uint8_t R, uint8_t G, uint8_t B)
+assign_color_array (uint8_t aod_int, uint8_t colorpos, uint8_t R, uint8_t G, uint8_t B)
 {
-  colors[colorpos][0] = R;
-  colors[colorpos][1] = G;
-  colors[colorpos][2] = B;
+  colors[aod_int][colorpos][0] = R;
+  colors[aod_int][colorpos][1] = G;
+  colors[aod_int][colorpos][2] = B;
+}
+
+uint8_t positive_subtract(uint8_t value, uint8_t sub_value){
+  if(value <= sub_value)
+      return 0;
+  else
+    return value-sub_value;
+}
+
+void
+dim_color_arrays(){
+
+  for(int i = 0; i < total_available_colors; i++){
+      assign_color_array(1, i,
+			 positive_subtract(colors[0][i][0], aod_dim_intensity),
+			 positive_subtract(colors[0][i][1], aod_dim_intensity),
+			 positive_subtract(colors[0][i][2], aod_dim_intensity)
+			 );
+  }
+
 }
 
 void
@@ -532,13 +559,13 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 		  /* Calculate gradient for conflicting hands */
 		  bool useInterpolatedColor = true;
 		  if((distance (distanceZoneHour, distanceZoneMinute) < shownElementsPerSide) && (shortestIsHour||shortestIsMinute)){
-		      gradiate(resultColor,colors[5],colors[3],((double)distHr)/(double)(shownElementsPerSide));
+		      gradiate(resultColor,colors[0][5],colors[0][3],((double)distHr)/(double)(shownElementsPerSide));
 		     // gradiate(resultNumberColor,colors[6],colors[4],((double)distMin)/(double)(doubleShownElements));
 		  } else if((distance (distanceZoneMinute,distanceZoneSecond) < shownElementsPerSide) && (shortestIsSecond||shortestIsMinute)){
-		      gradiate(resultColor,colors[3],colors[0],((double)distMin)/(double)(shownElementsPerSide));
+		      gradiate(resultColor,colors[0][3],colors[0][0],((double)distMin)/(double)(shownElementsPerSide));
 		     // gradiate(resultNumberColor,colors[4],colors[2],((double)distSec)/(double)(doubleShownElements));
 		  } else if((distance (distanceZoneHour,distanceZoneSecond) < shownElementsPerSide) && (shortestIsHour||shortestIsSecond)){
-		      gradiate(resultColor,colors[0],colors[5],((double)distSec)/(double)(shownElementsPerSide));
+		      gradiate(resultColor,colors[0][0],colors[0][5],((double)distSec)/(double)(shownElementsPerSide));
 		      //gradiate(resultNumberColor,colors[2],colors[6],((double)distHr)/(double)(doubleShownElements));
 		  }else {
 		      useInterpolatedColor=false;
@@ -552,11 +579,11 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 					     alphaValue);
 		      evas_object_show (ad->ticks[i]);
 		  }else{
-		      evas_object_color_set (ad->ticks[i], colors[arraypos][0], colors[arraypos][1], colors[arraypos][2], alphaValue);
+		      evas_object_color_set (ad->ticks[i], colors[0][arraypos][0], colors[0][arraypos][1], colors[0][arraypos][2], alphaValue);
 		      evas_object_show (ad->ticks[i]);
 		  }
 		  if (isMinuteNumber) {
-		      evas_object_color_set (ad->numTicks[numberPointerDyn], colors[numarraypos][0], colors[numarraypos][1], colors[numarraypos][2], alphaValue);
+		      evas_object_color_set (ad->numTicks[numberPointerDyn], colors[0][numarraypos][0], colors[0][numarraypos][1], colors[0][numarraypos][2], alphaValue);
 		      evas_object_show (ad->numTicks[numberPointerDyn]);
 		  }
 
@@ -688,7 +715,7 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
 
 		  bool useInterpolatedColor = true;
 		  if ((distance (distanceZoneHour, distanceZoneMinute) < shownElementsPerSide) && (shortestIsHour || shortestIsMinute)) {
-		      gradiate (resultColor, colors[5], colors[3], ((double) distHr) / (double) (shownElementsPerSide));
+		      gradiate (resultColor, colors[1][5], colors[1][3], ((double) distHr) / (double) (shownElementsPerSide));
 		      // gradiate(resultNumberColor,colors[6],colors[4],((double)distMin)/(double)(doubleShownElements));
 		    } else {
 		      useInterpolatedColor = false;
@@ -698,12 +725,12 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
 		      evas_object_color_set (ad->ticks[i], resultColor[0], resultColor[1], resultColor[2], alphaValue);
 		      evas_object_show (ad->ticks[i]);
 		    } else {
-		      evas_object_color_set (ad->ticks[i], colors[arraypos][0], colors[arraypos][1], colors[arraypos][2], alphaValue);
+		      evas_object_color_set (ad->ticks[i], colors[1][arraypos][0], colors[1][arraypos][1], colors[1][arraypos][2], alphaValue);
 		      evas_object_show (ad->ticks[i]);
 		    }
 
 		  if (isMinuteNumber) {
-		      evas_object_color_set (ad->numTicks[numberPointerDyn], colors[numarraypos][0], colors[numarraypos][1], colors[numarraypos][2], alphaValue);
+		      evas_object_color_set (ad->numTicks[numberPointerDyn], colors[1][numarraypos][0], colors[1][numarraypos][1], colors[1][numarraypos][2], alphaValue);
 		      evas_object_show (ad->numTicks[numberPointerDyn]);
 		  }
 
@@ -1012,21 +1039,24 @@ app_create (int width, int height, void *data)
    */
 
   /* Using color palette */
-  assign_color_array (0, 255, 255, 255);
+  assign_color_array (0, 0, 255, 255, 255);
 
   //assign_color_array(tickSecondColor, 255, 255, 255);
-  assign_color_array (1, 255, 66, 148);
+  assign_color_array (0, 1, 255, 66, 148);
 
-  assign_color_array (2, 255, 255, 255);
+  assign_color_array (0, 2, 255, 255, 255);
   //assign_color_array(tickNumberSecondColor, 255, 66, 224);
 
-  assign_color_array (3, 66, 255, 135);
+  assign_color_array (0, 3, 66, 255, 135);
 
-  assign_color_array (4, 255, 248, 69);
+  assign_color_array (0, 4, 255, 248, 69);
 
-  assign_color_array (5, 66, 110, 255);
+  assign_color_array (0, 5, 66, 110, 255);
 
-  assign_color_array (6, 255, 255, 255);
+  assign_color_array (0, 6, 255, 255, 255);
+
+  /* Process AOD dimmed versions */
+  dim_color_arrays();
 
   create_base_gui (ad, width, height);
 
