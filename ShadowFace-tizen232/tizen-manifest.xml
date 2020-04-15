@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="ciabbale.shadowface" version="1.0.0">
+    <profile name="wearable"/>
+    <watch-application ambient-support="true" appid="ciabbale.shadowface" exec="shadowface-tizen232">
+        <label>ShadowFace</label>
+        <icon>preview_analog.png</icon>
+    </watch-application>
+    <privileges>
+        <privilege>http://tizen.org/privilege/alarm.set</privilege>
+    </privileges>
+    <feature name="http://tizen.org/feature/screen.size.normal.320.320">true</feature>
+    <feature name="http://tizen.org/feature/screen.shape.circle">true</feature>
+    <feature name="http://tizen.org/feature/screen.size.normal.360.360">true</feature>
+</manifest>
