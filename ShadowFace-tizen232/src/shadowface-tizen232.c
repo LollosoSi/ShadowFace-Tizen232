@@ -610,7 +610,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 		      if (isMinuteNumber)
 			if (!showingMinutes[numberPointerDyn]) {
 			    char watch_text_buf[50];
-			    snprintf (watch_text_buf, 50, "<font_size=27><align=left>%2d</align></font>", i == 0 ? 60 : i);
+			    snprintf (watch_text_buf, 50, "<font_size=27><align=left>%2d</align></font>", i == 0 && (minute > shownElementsPerSide)  ? 60 : i);
 			    elm_object_text_set(ad->numTicks[numberPointerDyn], watch_text_buf);
 			    showingMinutes[numberPointerDyn] = 1;
 			  }
@@ -775,7 +775,7 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
   		  if(isMinuteNumber)
   		      if (!showingMinutes[numberPointerDyn]){
   			  char watch_text_buf[50];
-  			  snprintf (watch_text_buf, 50, "<font_size=27><align=left>%2d</align></font>", i==0?60:i);
+  			  snprintf (watch_text_buf, 50, "<font_size=27><align=left>%2d</align></font>", i==0 && (minute > shownElementsPerSide) ? 60 : i);
   			  elm_object_text_set(ad->numTicks[numberPointerDyn], watch_text_buf);
   			  showingMinutes[numberPointerDyn] = 1;
   			}
