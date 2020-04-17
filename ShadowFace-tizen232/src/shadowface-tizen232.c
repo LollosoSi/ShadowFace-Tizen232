@@ -49,6 +49,9 @@ short hourCenterDistance, secondCenterDistance, hand_hour_length,
     hand_minute_length, hand_second_length;
 short borderCommonDistance;
 
+// Uncomment this line for a "picture ready" static watchface.
+// #define picture_mode
+
 // Pick one
 #define pack1
 //#define pack2
@@ -527,9 +530,9 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
       watch_time_get_minute (watch_time, &minute);
       watch_time_get_second (watch_time, &second);
 
-      // Uncomment this line for a "picture ready" static watchface. Also uncomment in the ambient_tick method
-      // hour = 10;minute = 10;second = 45;
-
+      #ifdef picture_mode
+	hour = 10;minute = 10;second = 35;
+      #endif
       /* Angles for rotating the hands later on */
       /*float angle_hour, angle_minute, angle_second;
       setTimeAngles (&hour, &minute, &second, &angle_hour, &angle_minute, &angle_second);*/
@@ -586,7 +589,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 	      shortestIsSecond = !shortestIsHour && !shortestIsMinute;
 
 	      /* Find the alpha value */
-	      shortestDistance = shownElementsPerSide - (winningdist == distSec ? 1 : 0) - winningdist;
+	      shortestDistance = shownElementsPerSide - (shortestIsSecond ? 1 : 0) - winningdist;
 	      if (shortestDistance < 0)
 		alphaValue = 0;
 	      else{
@@ -609,7 +612,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 		{
 
 		  /* Set numbers if needed */
-		  if (shortestIsMinute) {
+		  if (shortestIsMinute || shortestIsSecond) {
 		      if (isMinuteNumber)
 			if (!showingMinutes[numberPointerDyn]) {
 			    char watch_text_buf[50];
@@ -623,7 +626,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 			char watch_text_buf[50];
 			snprintf (watch_text_buf, 50, "<font_size=27><align=left>%2d</align></font>", i == 0 ? 12 : numberPointerDyn);
 			elm_object_text_set(ad->numTicks[numberPointerDyn], watch_text_buf);
-			showingMinutes[numberPointerDyn] = 0;
+			showingMinutes[numberPointerDyn] = false;
 		      }
 
 		  /* Finding which color should be picked in the color array */
@@ -673,6 +676,9 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 
       int batlev;
       device_battery_get_percent (&batlev);
+      #ifdef picture_mode
+        batlev=85;
+      #endif
       short subtract_min_bat_length = (short) (hand_minute_length * (1.0f - (batlev / 100.0f)));
       evas_object_resize (ad->hand_minute_battery, 4, hand_minute_length - subtract_min_bat_length);
       evas_object_move (ad->hand_minute_battery, window_center_x - 2, GeneralGap + daily_border_distance + subtract_min_bat_length);
@@ -687,12 +693,21 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
       	  player_start (ad->playerTick2);
         playerTickSwap = !playerTickSwap;
 
+#ifdef picture_mode
+                      day_of_week+=1;
+                      if(day_of_week>7)
+                	day_of_week=1;
+                      reset_elements_settings(ad);
+
+#endif
+#ifndef picture_mode
 	  uint8_t weekday;
 	  watch_time_get_day_of_week(watch_time, &weekday);
           if(day_of_week != weekday){
               day_of_week=weekday;
               reset_elements_settings(ad);
           }
+#endif
 
         if(needFullLoop)
           needFullLoop=0;
@@ -709,8 +724,9 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
         watch_time_get_hour (watch_time, &hour);
         watch_time_get_minute (watch_time, &minute);
 
-        // Uncomment this line for a "picture ready" static watchface. Also uncomment in the active_tick method
-        // hour = 10; minute = 10;
+	#ifdef picture_mode
+	  hour = 10; minute = 10;
+	#endif
 
 
         /* Angles for rotating the hands later on */
@@ -832,6 +848,9 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
 
         uint8_t batlev;
         device_battery_get_percent (&batlev);
+	#ifdef picture_mode
+	  batlev=85;
+	#endif
         short subtract_min_bat_length = (short) (hand_minute_length * (1.0f - (batlev / 100.0f)));
         evas_object_resize (ad->hand_minute_battery, 4, hand_minute_length - subtract_min_bat_length);
         evas_object_move (ad->hand_minute_battery, window_center_x - 2, GeneralGap + daily_border_distance + subtract_min_bat_length);
