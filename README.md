@@ -46,4 +46,5 @@ Furthermore, you'll be able to personalize it to your liking.
 
 *The content provided is to be considered for information purposes only.  
 Editor and contributors decline any responsibility for issues or damage.*  
-For code-related issues please make use of the right section.
+For code-related issues please make use of the right section.  
+You may not distribute paid builds from this project or derivatives.
