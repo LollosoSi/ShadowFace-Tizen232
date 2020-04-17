@@ -527,6 +527,9 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
       watch_time_get_minute (watch_time, &minute);
       watch_time_get_second (watch_time, &second);
 
+      // Uncomment this line for a "picture ready" static watchface. Also uncomment in the ambient_tick method
+      // hour = 10;minute = 10;second = 45;
+
       /* Angles for rotating the hands later on */
       /*float angle_hour, angle_minute, angle_second;
       setTimeAngles (&hour, &minute, &second, &angle_hour, &angle_minute, &angle_second);*/
@@ -705,6 +708,10 @@ void ambient_tick(appdata_s *ad, watch_time_h watch_time){
     if (watch_time != NULL) {
         watch_time_get_hour (watch_time, &hour);
         watch_time_get_minute (watch_time, &minute);
+
+        // Uncomment this line for a "picture ready" static watchface. Also uncomment in the active_tick method
+        // hour = 10; minute = 10;
+
 
         /* Angles for rotating the hands later on */
         /*float angle_hour, angle_minute, angle_second;
