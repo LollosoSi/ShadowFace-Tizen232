@@ -1,6 +1,15 @@
 # ShadowFace-Tizen232
 The battery friendly analog watchface designed for tizen devices  
 
+Pictures
+--- 
+Notice the feature **"weekly shrinking"**  
+Maximum expansion on sundays, maximum contraption on saturdays (configurable)  
+**Sunday**  
+<img src="pic1.jpg" width="350" title="Watchface on sundays">  
+**Saturday**  
+ <img src="pic2.jpg" width="350" title="Watchface on saturdays">  
+
 # Features, Objectives & FAQ
 *Why this watchface is different?*  
 Like the Wear OS version, I had a couple reasons to code my own watchface:  
@@ -27,7 +36,7 @@ The closest minute is highlighted too!
 *If you wanted a battery friendly watchface, why aren't you just using a plain digital one?*  
 I have a round watch.  
 
-*Why is this unavailable in the store?*  
+*Why is this unavailable on the store?*  
 Unfortunately it is closed for new watchface developers at the moment.  
 Will re-attempt on August, 2020  
 
