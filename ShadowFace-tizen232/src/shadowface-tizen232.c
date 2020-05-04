@@ -637,13 +637,13 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 
 		  /* Calculate gradient for conflicting hands */
 		  bool useInterpolatedColor = true;
-		  if((distance (distanceZoneHour, distanceZoneMinute) < shownElementsPerSide) && (shortestIsHour||shortestIsMinute)){
+		  if((distance (distanceZoneHour, distanceZoneMinute) < shownElementsPerSide) && (shortestIsHour||shortestIsMinute) && MAX(distHr, distMin) <= (shownElementsPerSide/2)){
 		      gradiate(resultColor,colors[0][5],colors[0][3],((double)distHr)/(double)(shownElementsPerSide));
 		     // gradiate(resultNumberColor,colors[6],colors[4],((double)distMin)/(double)(doubleShownElements));
-		  } else if((distance (distanceZoneMinute,distanceZoneSecond) < shownElementsPerSide) && (shortestIsSecond||shortestIsMinute)){
+		  } else if((distance (distanceZoneMinute,distanceZoneSecond) < shownElementsPerSide) && (shortestIsSecond||shortestIsMinute) && MAX(distMin, distSec) <= (shownElementsPerSide/2)){
 		      gradiate(resultColor,colors[0][3],colors[0][0],((double)distMin)/(double)(shownElementsPerSide));
 		     // gradiate(resultNumberColor,colors[4],colors[2],((double)distSec)/(double)(doubleShownElements));
-		  } else if((distance (distanceZoneHour,distanceZoneSecond) < shownElementsPerSide) && (shortestIsHour||shortestIsSecond)){
+		  } else if((distance (distanceZoneHour,distanceZoneSecond) < shownElementsPerSide) && (shortestIsHour||shortestIsSecond) && MAX(distHr, distSec) <= (shownElementsPerSide/2)){
 		      gradiate(resultColor,colors[0][0],colors[0][5],((double)distSec)/(double)(shownElementsPerSide));
 		      //gradiate(resultNumberColor,colors[2],colors[6],((double)distHr)/(double)(doubleShownElements));
 		  }else {
