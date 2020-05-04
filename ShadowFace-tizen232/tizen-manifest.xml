@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="ciabbale.shadowface" version="1.0.0">
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="ciabbale.shadowface" version="1.1.0">
+    <author email="lollosositv@gmail.com">Ciabbale</author>
     <profile name="wearable"/>
     <watch-application ambient-support="true" appid="ciabbale.shadowface" exec="shadowface-tizen232">
         <label>ShadowFace</label>
