@@ -32,6 +32,7 @@ With hours as hours, minutes as minutes, seconds as seconds, you get both. All o
 The closest minute is highlighted too!
 * Further dim Always On Display mode (*can be set in project files*)
 * Ticking sound! (*a total of 4 different sounds is available as of 17/04/2020*)
+* The design is also grayscale-friendly
 
 *If you wanted a battery friendly watchface, why aren't you just using a plain digital one?*  
 I have a round watch.  
