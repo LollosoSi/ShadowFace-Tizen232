@@ -156,8 +156,9 @@ setTimeAnglesNoSecond (int *hour, int *minute, unsigned short *hourAngle,
 int
 distance (int alpha, int beta)
 {
-  uint8_t dst = abs (alpha - beta);
-  return MIN(dst, 60 - dst);
+  int a = alpha - beta;
+  a = (a + 30) % 60 - 30;
+  return abs(a);
 }
 
 int
@@ -531,7 +532,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
       watch_time_get_second (watch_time, &second);
 
       #ifdef picture_mode
-	hour = 10;minute = 10;second = 35;
+	hour = 10; minute = 10;second = 35;
       #endif
       /* Angles for rotating the hands later on */
       /*float angle_hour, angle_minute, angle_second;
@@ -585,7 +586,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 	      /* Find out which one is closer */
 	      bool shortestIsHour, shortestIsMinute, shortestIsSecond;
 	      shortestIsHour = winningdist==distHr;
-	      shortestIsMinute = !shortestIsHour ? winningdist==distMin : 0;
+	      shortestIsMinute = !shortestIsHour && winningdist==distMin;
 	      shortestIsSecond = !shortestIsHour && !shortestIsMinute;
 
 	      /* Find the alpha value */
@@ -622,11 +623,12 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 			  }
 
 		    } else if (shortestIsHour)
-		    if (isMinuteNumber && showingMinutes[numberPointerDyn]) {
+		    if (isMinuteNumber) {
 			char watch_text_buf[50];
 			snprintf (watch_text_buf, 50, "<font_size=27><align=left>%2d</align></font>", i == 0 ? 12 : numberPointerDyn);
 			elm_object_text_set(ad->numTicks[numberPointerDyn], watch_text_buf);
 			showingMinutes[numberPointerDyn] = false;
+
 		      }
 
 		  /* Finding which color should be picked in the color array */
@@ -647,6 +649,7 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 		  }else {
 		      useInterpolatedColor=false;
 		  }
+
 
 		  if (useInterpolatedColor){
 
