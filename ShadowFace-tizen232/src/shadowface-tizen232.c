@@ -157,7 +157,8 @@ int
 distance (int alpha, int beta)
 {
   int a = alpha - beta;
-  a = (a + 30) % 60 - 30;
+  if (a > 30) a -= 60;
+  if (a < -30) a += 60;
   return abs(a);
 }
 
