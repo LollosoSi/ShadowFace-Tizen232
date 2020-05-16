@@ -52,7 +52,9 @@ short borderCommonDistance;
 // Uncomment this line for a "picture ready" static watchface.
 // #define picture_mode
 
-// Pick one
+
+#define enableticking // Keep this defined for sound
+// Must pick one
 #define pack1
 //#define pack2
 
@@ -602,6 +604,8 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 		//  alphaValue = 0;
 	      }
 
+	      //alphaValue=255;
+
 	      if (alphaValue == 0)
 		{
 		  if (isMinuteNumber)
@@ -691,11 +695,13 @@ void active_tick(appdata_s *ad, watch_time_h watch_time){
 
       view_rotate_object (ad->hand_second, angle_second, window_center_x, window_center_y);
 
+#ifdef enableticking
       if (playerTickSwap)
       	  player_start (ad->playerTick1);
       else
       	  player_start (ad->playerTick2);
         playerTickSwap = !playerTickSwap;
+#endif
 
 #ifdef picture_mode
                       day_of_week+=1;
@@ -1088,6 +1094,8 @@ app_create (int width, int height, void *data)
    If this function returns false, the application is terminated */
   appdata_s *ad = data;
 
+#ifdef enableticking
+
   char audio_filepath[256];
   char *source_filename = tick1;
   char audio_filepath2[256];
@@ -1122,17 +1130,17 @@ app_create (int width, int height, void *data)
 		"failed to prepare player: error code = %d", error_code);
 
   /*error_code = app_resource_manager_init ();
-  if (error_code != APP_RESOURCE_ERROR_NONE)
-    dlog_print (DLOG_ERROR, LOG_TAG,
-		"failed to prepare player: error code = %d", error_code);*/
+   if (error_code != APP_RESOURCE_ERROR_NONE)
+   dlog_print (DLOG_ERROR, LOG_TAG,
+   "failed to prepare player: error code = %d", error_code);*/
 
   error_code = player_create (&ad->playerTick2);
   if (error_code != PLAYER_ERROR_NONE)
     dlog_print (DLOG_ERROR, LOG_TAG, "failed to create");
-/*
-  *sound_path = NULL;
-  app_resource_manager_get (APP_RESOURCE_TYPE_SOUND, tick2, &sound_path);
-  // dlog_print(DLOG_ERROR, LOG_TAG, "SOUND PATH %s", sound_path);*/
+  /*
+   *sound_path = NULL;
+   app_resource_manager_get (APP_RESOURCE_TYPE_SOUND, tick2, &sound_path);
+   // dlog_print(DLOG_ERROR, LOG_TAG, "SOUND PATH %s", sound_path);*/
 
   error_code = player_set_uri (ad->playerTick2, audio_filepath2);
   if (error_code != PLAYER_ERROR_NONE)
@@ -1146,6 +1154,7 @@ app_create (int width, int height, void *data)
 
   player_set_volume (ad->playerTick1, tickVolume, tickVolume);
   player_set_volume (ad->playerTick2, tickVolume, tickVolume);
+#endif
 
 
   shadow_coeff = 255.0f / shownElementsPerSide;
@@ -1210,6 +1219,7 @@ app_terminate (void *data)
   /* Release all resources. */
   appdata_s *ad = data;
 
+#ifdef enableticking
   player_stop (ad->playerTick1);
   player_unprepare (ad->playerTick1);
   player_destroy (ad->playerTick1);
@@ -1217,6 +1227,7 @@ app_terminate (void *data)
   player_stop (ad->playerTick2);
   player_unprepare (ad->playerTick2);
   player_destroy (ad->playerTick2);
+#endif
 
   //app_resource_manager_release ();
 
@@ -1228,8 +1239,10 @@ app_time_tick (watch_time_h watch_time, void *data)
   /* Called at each second while your app is visible. Update watch UI. */
   appdata_s *ad = data;
 
+#ifdef enableticking
   player_stop (ad->playerTick1);
   player_stop (ad->playerTick2);
+#endif
 
   requestUpdate(false, watch_time, ad);
   //active_tick (ad, watch_time);
