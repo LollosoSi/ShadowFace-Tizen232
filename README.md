@@ -24,7 +24,7 @@ Like the Wear OS version, I had a couple reasons to code my own watchface:
 * - Weekly shrinking  
 * - Low pixel on ratio design with strategical item positions  
 combined with the system standard protection make this watchface a good candidate for the safest ones on earth  
-* Battery bar as minutes watch hand.  Would you still notice without knowihg it?
+* Battery bar as minutes watch hand.  Would you still notice without knowing it?
 * **Faster reading** with the digital **fused** with analog.  
 Some say the two aren't married, in fact why would you have both clearly visible?  
 With hours as hours, minutes as minutes, seconds as seconds, you get both. All on the analog.
