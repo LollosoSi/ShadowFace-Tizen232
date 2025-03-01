@@ -39,7 +39,8 @@ I have a round watch.
 
 *Why is this unavailable on the store?*  
 Unfortunately it is closed for new watchface developers at the moment.  
-Will re-attempt on August, 2020  
+~Will re-attempt on August, 2020~
+Unfortunately installing through this repository is mandatory. Guess why
 
 *How can I install it?*  
 Look no further than the following section
